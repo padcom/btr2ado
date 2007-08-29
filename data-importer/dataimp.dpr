@@ -36,7 +36,7 @@ begin
   OleInitialize(nil);
   DescrFile := TDatabaseDefinition.Create;
   try
-    DescrFile.LoadXml('data\description.xml');
+    DescrFile.LoadXml(TOptions.Instance.DataDescriptionFile);
     Table := DescrFile.Tables.TableByName[TOptions.Instance.TableName];
 
     GetMem(Buffer, Table.Size);
