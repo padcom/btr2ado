@@ -175,7 +175,7 @@ begin
 
   DDF := TDatabaseDefinition.Create;
   DDF.LoadXml('..\data-importer\data\description.xml');
-  Table := DDF.Tables['code'];
+  Table := DDF.Tables.TableByName['code'];
 
   Key := GetCODEKey(' ', 'LOT', 'COMMDRVR', '', 0);
   DataSize := SizeOf(Data);

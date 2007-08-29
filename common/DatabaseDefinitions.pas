@@ -109,10 +109,10 @@ type
   TTableList = class (TObjectList)
   private
     function GetItem(Index: Integer): TTable;
-    function GetItemByName(TableName: String): TTable;
+    function GetTableByName(TableName: String): TTable;
   public
-    property Items[Index: Integer]: TTable read GetItem;
-    property ItemByName[TableName: String]: TTable read GetItemByName; default;
+    property Items[Index: Integer]: TTable read GetItem; default;
+    property TableByName[TableName: String]: TTable read GetTableByName;
   end;
 
   TDatabaseDefinition = class (TObject)
@@ -435,7 +435,7 @@ begin
   Result := TObject(Get(Index)) as TTable;
 end;
 
-function TTableList.GetItemByName(TableName: String): TTable;
+function TTableList.GetTableByName(TableName: String): TTable;
 var
   I: Integer;
 begin

@@ -37,7 +37,7 @@ begin
   DescrFile := TDatabaseDefinition.Create;
   try
     DescrFile.LoadXml('data\description.xml');
-    Table := DescrFile.Tables[TOptions.Instance.TableName];
+    Table := DescrFile.Tables.TableByName[TOptions.Instance.TableName];
 
     GetMem(Buffer, Table.Size);
     BFile := TBtrvFile.Create;
