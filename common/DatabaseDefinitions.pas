@@ -3,7 +3,7 @@ unit DatabaseDefinitions;
 interface
 
 uses
-  ComObj, Classes, SysUtils, Contnrs,
+  Variants, ComObj, Classes, SysUtils, Contnrs,
   PxADODb, PxXmlFile;
 
 type
@@ -186,7 +186,10 @@ procedure TIntegerField.InsertValue(Data: Variant; Buffer: Pointer);
 var
   Value: Integer;
 begin
-  Value := Data;
+  if Data = null then
+    Value := 0
+  else
+    Value := Data;
   Move(Value, Pointer(PChar(Buffer) + FieldOffset)^, Size);
 end;
 
@@ -225,7 +228,7 @@ procedure TStringField.InsertValue(Data: Variant; Buffer: Pointer);
 var
   Value: String;
 begin
-  Value := Data;
+  Value := VarToStr(Data);
   PByte(PChar(Buffer) + FieldOffset)^ := Length(Value);
   Move(Value[1], Pointer(PChar(Buffer) + FieldOffset + 1)^, Size - 1);
 end;
