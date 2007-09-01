@@ -176,13 +176,13 @@ var
   Data: CODERecordType;
   DataSize: Word;
   DDF: TDatabaseDefinition;
-  Key: String;
+  Key: ShortString;
   PosBlock: array[0..1024] of Byte;
   DataLen: Word;
   Status: Integer;
 
 begin
-  Key := ExpandFileName('..\data-importer\data\CODE.DAT');
+  Key := ExpandFileName('..\data-importer\data\CODE.DAT') + #0;
   DataLen := SizeOf(Data);
   Status := BTRV(B_OPEN, PosBlock, Data, DataLen, Key, 1);
   Assert(Status = 0);

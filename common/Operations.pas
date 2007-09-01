@@ -23,6 +23,7 @@ type
   TOperation = class (TObject)
   private
     FBTRCALL: TBTRCALL;
+    FConvertKey: Boolean;
     procedure UpdateKey(Table: TTable; KeyField: Field; var KeyBuffer);
   protected
     procedure GatherData(Table: TTable; Fields: Fields; var DataBuffer);
@@ -30,6 +31,7 @@ type
   public
     constructor Create(ABTRCALL: TBTRCALL);
     function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; virtual; abstract;
+    property ConvertKey: Boolean read FConvertKey;
   end;
 
   TOpenOperation = class (TOperation)
@@ -37,6 +39,7 @@ type
     function ExtractTable(var KeyBuffer): TTable;
     function CreateQuery(Table: TTable; KeyNumber: Integer): String;
   public
+    constructor Create(ABTRCALL: TBTRCALL);
     function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
   end;
 
@@ -94,6 +97,8 @@ type
   private
     FOperations: array[0..MAX_OPERATION] of TOperation;
     FDataDefinition: TDatabaseDefinition;
+    function KeyBufferToSQL(KeyBuffer: PChar): String;
+    function KeyBufferFromSQL(KeyBuffer: String): String;
   protected
     class procedure Initialize;
     class procedure Finalize;
@@ -118,7 +123,7 @@ var
   Key: String;
 begin
   Key := KeyField.Value;
-  Move(Key[1], PChar(KeyBuffer)^, Length(Key));
+  Move(Key[1], (PChar(@KeyBuffer)+1)^, Length(Key));
 end;
 
 procedure TOperation.GatherData(Table: TTable; Fields: Fields; var DataBuffer);
@@ -132,6 +137,7 @@ constructor TOperation.Create(ABTRCALL: TBTRCALL);
 begin
   inherited Create;
   FBTRCALL := ABTRCALL;
+  FConvertKey := True;
 end;
 
 { TOpenOperation }
@@ -165,6 +171,12 @@ begin
 end;
 
 { Public declarations }
+
+constructor TOpenOperation.Create(ABTRCALL: TBTRCALL);
+begin
+  inherited Create(ABTRCALL);
+  FConvertKey := False;
+end;
 
 function TOpenOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
 begin
@@ -400,6 +412,26 @@ end;
 
 { Private declarations }
 
+function TBTRCALL.KeyBufferToSQL(KeyBuffer: PChar): String;
+var
+  I: Integer;
+  Key: String;
+begin
+  Key := KeyBuffer;
+  Result := '';
+  for I := 1 to Length(Key) do
+    Result := Result + IntToHex(Byte(Key[I]), 2);
+end;
+
+function TBTRCALL.KeyBufferFromSQL(KeyBuffer: String): String;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 0 to (Length(KeyBuffer) div 2) - 1 do
+    Result := Result + Chr(StrToInt('$' + Copy(KeyBuffer, I * 2 + 1, 2)));
+end;
+
 { Protected declarations }
 
 var
@@ -454,9 +486,22 @@ begin
 end;
 
 function TBTRCALL.Execute(Operation: Word; var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
+var
+  Key: String;
 begin
   if Assigned(FOperations[Operation]) then
-    Result := FOperations[Operation].Execute(PosBlock, DataBuffer, DataLen, KeyBuffer, KeyLength, KeyNumber)
+  begin
+    if FOperations[Operation].ConvertKey then
+      Key := KeyBufferToSQL(PChar(@KeyBuffer)+1)
+    else
+      Key := PChar(@KeyBuffer)+1;
+    Result := FOperations[Operation].Execute(PosBlock, DataBuffer, DataLen, Key, KeyLength, KeyNumber);
+    if FOperations[Operation].ConvertKey then
+    begin
+      Key := KeyBufferFromSQL(Key);
+      Move(Key[1], KeyBuffer, Length(Key));
+    end;
+  end
   else
     Result := B_OPERATION_NOT_IMPLEMENTED;
 end;
