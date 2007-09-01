@@ -16,6 +16,7 @@ type
     FSize: Integer;
     function GetFieldOffset: Integer;
   protected
+    function GetDataSize: Integer; virtual;
     function GetSQLDefinition: String; virtual; abstract;
     function GetAdoFieldType: OleVariant; virtual; abstract;
   public
@@ -26,6 +27,7 @@ type
     property Table: TTable read FTable;
     property Name: String read FName write FName;
     property Size: Integer read FSize write FSize;
+    property DataSize: Integer read GetDataSize;
     property FieldOffset: Integer read GetFieldOffset;
     property SQLDefinition: String read GetSQLDefinition;
     property AdoFieldType: OleVariant read GetAdoFieldType;
@@ -43,6 +45,7 @@ type
 
   TStringField = class (TField)
   protected
+    function GetDataSize: Integer; override;
     function GetSQLDefinition: String; override;
     function GetAdoFieldType: OleVariant; override;
   public
@@ -143,6 +146,11 @@ begin
       Result := Result + Table.Fields[I].Size;
 end;
 
+function TField.GetDataSize: Integer;
+begin
+  Result := Size;
+end;
+
 { Public declarations }
 
 constructor TField.Create(ATable: TTable);
@@ -196,6 +204,11 @@ end;
 { TStringField }
 
 { Protected declarations }
+
+function TStringField.GetDataSize: Integer;
+begin
+  Result := Size - 1;
+end;
 
 function TStringField.GetSQLDefinition: String;
 begin
@@ -377,6 +390,7 @@ end;
 // TODO: Split into logical blocks, maybe into a class
 function TTable.CreateInsertCommand(Buffer: Pointer): Command;
 var
+  KeyValue: String;
   I: Integer;
 begin
   Result := CreateComObject(CLASS_Command) as Command;
@@ -389,33 +403,35 @@ begin
   begin
     Result.CommandText := Result.CommandText + Fields[I].Name;
     if I < Fields.Count - 1 then
-      Result.CommandText := Result.CommandText + ', ';
+      Result.CommandText := Result.CommandText + ',';
   end;
 
   Result.CommandText := Result.CommandText + ') VALUES (';
 
   for I := 0 to Indices.Count - 1 do
-    Result.CommandText := Result.CommandText + '?, ';
+    Result.CommandText := Result.CommandText + '?,';
 
   for I := 0 to Fields.Count - 1 do
   begin
     Result.CommandText := Result.CommandText + '?';
     if I < Fields.Count - 1 then
-      Result.CommandText := Result.CommandText + ', ';
+      Result.CommandText := Result.CommandText + ',';
   end;
 
   Result.CommandText := Result.CommandText + ')';
 
   for I := 0 to Indices.Count - 1 do
+  begin
     Result.Parameters.Append(
       Result.CreateParameter(
-        Fields[I].Name,
+        Indices[I].Name,
         adChar,
         adParamInput,
-        50,
+        Indices[I].Length,
         Indices[I].CalculateKey(Buffer)
       )
     );
+  end;
 
   for I := 0 to Fields.Count - 1 do
     Result.Parameters.Append(
@@ -423,7 +439,7 @@ begin
         Fields[I].Name,
         Fields[I].AdoFieldType,
         adParamInput,
-        Fields[I].Size,
+        Fields[I].DataSize,
         Fields[I].ExtractValue(Buffer)
       )
     );

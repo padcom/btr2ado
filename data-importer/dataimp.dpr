@@ -31,6 +31,7 @@ var
   Cmd, RO: OleVariant;
   Buffer: Pointer;
   BFile: TBtrvFile;
+  Dataset: Recordset;
 
 begin
   OleInitialize(nil);

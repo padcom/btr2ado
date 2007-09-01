@@ -31,5 +31,29 @@
         </index>
       </indices>
     </table>
+    <table name="ERRORS">
+      <fields>
+        <field name="HistoryTag" type="Byte" size="1"/>
+        <field name="AbsoluteId" type="String" size="7"/>
+        <field name="RecordStatus" type="String" size="2"/>
+        <field name="LastDateModified" type="String" size="8"/>
+        <field name="LastTimeModified" type="String" size="5"/>
+        <field name="LastUserToModify" type="String" size="5"/>
+        <field name="CompanyCode" type="String" size="4"/>
+        <field name="Identifier" type="String" size="5"/>
+        <field name="ErrorType" type="String" size="9"/>
+        <field name="ErrorMessage" type="String" size="70"/>
+        <field name="RecordType" type="String" size="2"/>
+      </fields>
+      <indices>
+        <index id="1">
+          <fields>
+            <field name="RecordType"/>
+            <field name="Identifier"/>
+            <field name="HistoryTag"/>
+          </fields>
+        </index>
+      </indices>
+    </table>
   </tables>
 </definitions>
