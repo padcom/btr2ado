@@ -7,6 +7,8 @@ uses
   PxADODb, PxXmlFile;
 
 type
+  ENotImplemented = class (Exception);
+
   TTable = class;
 
   TField = class (TObject)
@@ -35,6 +37,37 @@ type
 
   TIntegerField = class (TField)
   protected
+    function GetSQLDefinition: String; override;
+    function GetAdoFieldType: OleVariant; override;
+  public
+    function ExtractValueForKey(Buffer: Pointer): String; override;
+    function ExtractValue(Buffer: Pointer): Variant; override;
+    procedure InsertValue(Data: Variant; Buffer: Pointer); override;
+  end;
+
+  TBooleanField = class (TField)
+  protected
+    function GetSQLDefinition: String; override;
+    function GetAdoFieldType: OleVariant; override;
+  public
+    function ExtractValueForKey(Buffer: Pointer): String; override;
+    function ExtractValue(Buffer: Pointer): Variant; override;
+    procedure InsertValue(Data: Variant; Buffer: Pointer); override;
+  end;
+
+  TDateTimeField = class (TField)
+  protected
+    function GetSQLDefinition: String; override;
+    function GetAdoFieldType: OleVariant; override;
+  public
+    function ExtractValueForKey(Buffer: Pointer): String; override;
+    function ExtractValue(Buffer: Pointer): Variant; override;
+    procedure InsertValue(Data: Variant; Buffer: Pointer); override;
+  end;
+
+  TBinaryField = class (TField)
+  protected
+    function GetDataSize: Integer; override;
     function GetSQLDefinition: String; override;
     function GetAdoFieldType: OleVariant; override;
   public
@@ -201,6 +234,86 @@ begin
   Move(Value, Pointer(PChar(Buffer) + FieldOffset)^, Size);
 end;
 
+{ TBooleanField }
+
+{ Protected declarations }
+
+function TBooleanField.GetSQLDefinition: String;
+begin
+  Result := Format('%s bool', [Name]);
+end;
+
+function TBooleanField.GetAdoFieldType: OleVariant;
+begin
+  Result := adBoolean;
+end;
+
+{ Public declarations }
+
+function TBooleanField.ExtractValueForKey(Buffer: Pointer): String;
+begin
+  raise ENotImplemented.Create('Error: TBooleanField.ExtractValueForKey not yet implemented');
+end;
+
+function TBooleanField.ExtractValue(Buffer: Pointer): Variant;
+var
+  Value: Boolean;
+begin
+  Move(Pointer(PChar(Buffer) + FieldOffset)^, Value, Size);
+  Result := Value;
+end;
+
+procedure TBooleanField.InsertValue(Data: Variant; Buffer: Pointer);
+var
+  Value: Boolean;
+begin
+  if Data = null then
+    Value := False
+  else
+    Value := Data;
+  Move(Value, Pointer(PChar(Buffer) + FieldOffset)^, Size);
+end;
+
+{ TDateTimeField }
+
+{ Protected declarations }
+
+function TDateTimeField.GetSQLDefinition: String;
+begin
+  Result := Format('%s timestamp', [Name]);
+end;
+
+function TDateTimeField.GetAdoFieldType: OleVariant;
+begin
+  Result := adDBTimeStamp;
+end;
+
+{ Public declarations }
+
+function TDateTimeField.ExtractValueForKey(Buffer: Pointer): String;
+begin
+  raise ENotImplemented.Create('Error: TDateTimeField.ExtractValueForKey not yet implemented');
+end;
+
+function TDateTimeField.ExtractValue(Buffer: Pointer): Variant;
+var
+  Value: TDateTime;
+begin
+  Move(Pointer(PChar(Buffer) + FieldOffset)^, Value, Size);
+  Result := Value;
+end;
+
+procedure TDateTimeField.InsertValue(Data: Variant; Buffer: Pointer);
+var
+  Value: TDateTime;
+begin
+  if Data = null then
+    Value := 9
+  else
+    Value := Data;
+  Move(Value, Pointer(PChar(Buffer) + FieldOffset)^, Size);
+end;
+
 { TStringField }
 
 { Protected declarations }
@@ -246,6 +359,80 @@ begin
   Move(Value[1], Pointer(PChar(Buffer) + FieldOffset + 1)^, Size - 1);
 end;
 
+{ TBinaryField }
+
+{ Protected declarations }
+
+function TBinaryField.GetDataSize: Integer;
+begin
+  Result := Size * 2;
+end;
+
+function TBinaryField.GetSQLDefinition: String;
+begin
+  Result := Format('%s char(%d)', [Name, Size * 2]);
+end;
+
+function TBinaryField.GetAdoFieldType: OleVariant;
+begin
+  Result := adChar;
+end;
+
+{ Public declarations }
+
+const
+  HEX_NUMBERS: String = '0123456789ABCDEF';
+
+function BinaryToString(Buffer: Pointer; BufferSize: Integer): String;
+var
+  I: Integer;
+  B: PByte;
+begin
+  SetLength(Result, BufferSize * 2);
+  FillChar(Result[1], BufferSize * 2, 20);
+  for I := 0 to BufferSize - 1 do
+  begin
+    B := PByte(PChar(Buffer) + I);
+    Result[I * 2 + 1] := HEX_NUMBERS[(B^ and 240 + 1) shr 4 + 1];
+    Result[I * 2 + 2] := HEX_NUMBERS[B^ and 15 + 1];
+  end;
+end;
+
+procedure StringToBinary(S: String; Buffer: Pointer);
+const
+  HEX_VALUES: array['0'..'F'] of Byte = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0, 0, 0, 0, $A, $B, $C, $D, $E, $F);
+var
+  I: Integer;
+  L, H: Byte;
+begin
+  for I := 0 to Length(S) div 2 - 1 do
+  begin
+    H := HEX_VALUES[S[I * 2 + 1]] * 16;
+    L := HEX_VALUES[S[I * 2 + 2]];
+    PByte(PChar(Buffer) + I)^ := L + H;
+  end;
+end;
+
+function TBinaryField.ExtractValueForKey(Buffer: Pointer): String;
+begin
+  SetLength(Result, Size - 1);
+  Move(Pointer(PChar(Buffer) + FieldOffset + 1)^, Result[1], Size - 1);
+end;
+
+function TBinaryField.ExtractValue(Buffer: Pointer): Variant;
+begin
+  Result := BinaryToString(PChar(Buffer) + FieldOffset, Size);
+end;
+
+procedure TBinaryField.InsertValue(Data: Variant; Buffer: Pointer);
+var
+  Value: String;
+begin
+  Value := Data;
+  StringToBinary(Value, PChar(Buffer) + FieldOffset);
+//  PByte(PChar(Buffer) + FieldOffset)^ := Length(Value) div 2;
+end;
+
 { TFieldFactory }
 
 class function TFieldFactory.CreateField(Name: String; Table: TTable): TField;
@@ -255,15 +442,31 @@ begin
     Result := TIntegerField.Create(Table);
     Result.Size := 1;
   end
+  else if AnsiSameText('ShortInt', Name) then
+  begin
+    Result := TIntegerField.Create(Table);
+    Result.Size := 1;
+  end
   else if AnsiSameText('Integer', Name) then
+  begin
+    Result := TIntegerField.Create(Table);
+    Result.Size := 4;
+  end
+  else if AnsiSameText('LongWord', Name) then
   begin
     Result := TIntegerField.Create(Table);
     Result.Size := 4;
   end
   else if AnsiSameText('String', Name) then
     Result := TStringField.Create(Table)
+  else if AnsiSameText('Boolean', Name) then
+    Result := TBooleanField.Create(Table)
+  else if AnsiSameText('DateTime', Name) then
+    Result := TDateTimeField.Create(Table)
+  else if AnsiSameText('Binary', Name) then
+    Result := TBinaryField.Create(Table)
   else
-    Result := nil;
+    raise Exception.CreateFmt('Error: unknown field type %s', [Name]);
 end;
 
 { TFieldList }
@@ -390,7 +593,6 @@ end;
 // TODO: Split into logical blocks, maybe into a class
 function TTable.CreateInsertCommand(Buffer: Pointer): Command;
 var
-  KeyValue: String;
   I: Integer;
 begin
   Result := CreateComObject(CLASS_Command) as Command;

@@ -31,7 +31,6 @@ var
   Cmd, RO: OleVariant;
   Buffer: Pointer;
   BFile: TBtrvFile;
-  Dataset: Recordset;
 
 begin
   OleInitialize(nil);
@@ -53,6 +52,7 @@ begin
       try
         C.Execute(Format('DROP TABLE %S CASCADE ', [Table.Name]), RO, 0);
       except
+        // silently skip an exception because it's an information that the table does not exist
       end;
       C.Execute(CreateTableQuery(Table), RO, 0);
 

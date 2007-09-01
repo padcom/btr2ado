@@ -5,7 +5,7 @@
     <table name="CODE">
       <fields>
         <field name="HistoryTag" type="Byte" size="1"/>
-        <field name="AbsoluteId" type="String" size="7"/>
+        <field name="AbsoluteId" type="Binary" size="7"/>
         <field name="RecordStatus" type="String" size="2"/>
         <field name="LastDateModified" type="String" size="8"/>
         <field name="LastTimeModified" type="String" size="5"/>
@@ -31,10 +31,11 @@
         </index>
       </indices>
     </table>
+
     <table name="ERRORS">
       <fields>
         <field name="HistoryTag" type="Byte" size="1"/>
-        <field name="AbsoluteId" type="String" size="7"/>
+        <field name="AbsoluteId" type="Binary" size="7"/>
         <field name="RecordStatus" type="String" size="2"/>
         <field name="LastDateModified" type="String" size="8"/>
         <field name="LastTimeModified" type="String" size="5"/>
@@ -48,8 +49,218 @@
       <indices>
         <index id="1">
           <fields>
-            <field name="RecordType"/>
+            <field name="RecordStatus"/>
             <field name="Identifier"/>
+            <field name="HistoryTag"/>
+          </fields>
+        </index>
+      </indices>
+    </table>
+
+    <table name="DBKEYS">
+      <fields>
+        <field name="HistoryTag" type="Byte" size="1"/>
+        <field name="AbsoluteId" type="Binary" size="7"/>
+        <field name="RecordStatus" type="String" size="2"/>
+        <field name="LastDateModified" type="String" size="8"/>
+        <field name="LastTimeModified" type="String" size="5"/>
+        <field name="LastUserToModify" type="String" size="5"/>
+        <field name="CompanyCode" type="String" size="4"/>
+        <field name="DatabaseName" type="String" size="9"/>
+        <field name="Identifier" type="String" size="4"/>
+        <field name="KeyNumber" type="String" size="2"/>
+        <field name="RecordSize" type="String" size="7"/>
+        <field name="MaxRecordSize" type="String" size="7"/>
+        <field name="Flags" type="String" size="7"/>
+        <field name="InitialPages" type="String" size="6"/>
+        <field name="DBKEYS2_01_Position" type="String" size="5"/>
+        <field name="DBKEYS2_01_Length" type="String" size="4"/>
+        <field name="DBKEYS2_01_DataElementName" type="String" size="33"/>
+        <field name="DBKEYS2_01_DataElementType" type="String" size="9"/>
+        <field name="DBKEYS2_01_PickHeader" type="String" size="13"/>
+        <field name="DBKEYS2_01_Flags" type="String" size="8"/>
+        <field name="DBKEYS2_02_Position" type="String" size="5"/>
+        <field name="DBKEYS2_02_Length" type="String" size="4"/>
+        <field name="DBKEYS2_02_DataElementName" type="String" size="33"/>
+        <field name="DBKEYS2_02_DataElementType" type="String" size="9"/>
+        <field name="DBKEYS2_02_PickHeader" type="String" size="13"/>
+        <field name="DBKEYS2_02_Flags" type="String" size="8"/>
+        <field name="DBKEYS2_03_Position" type="String" size="5"/>
+        <field name="DBKEYS2_03_Length" type="String" size="4"/>
+        <field name="DBKEYS2_03_DataElementName" type="String" size="33"/>
+        <field name="DBKEYS2_03_DataElementType" type="String" size="9"/>
+        <field name="DBKEYS2_03_PickHeader" type="String" size="13"/>
+        <field name="DBKEYS2_03_Flags" type="String" size="8"/>
+        <field name="DBKEYS2_04_Position" type="String" size="5"/>
+        <field name="DBKEYS2_04_Length" type="String" size="4"/>
+        <field name="DBKEYS2_04_DataElementName" type="String" size="33"/>
+        <field name="DBKEYS2_04_DataElementType" type="String" size="9"/>
+        <field name="DBKEYS2_04_PickHeader" type="String" size="13"/>
+        <field name="DBKEYS2_04_Flags" type="String" size="8"/>
+        <field name="DBKEYS2_05_Position" type="String" size="5"/>
+        <field name="DBKEYS2_05_Length" type="String" size="4"/>
+        <field name="DBKEYS2_05_DataElementName" type="String" size="33"/>
+        <field name="DBKEYS2_05_DataElementType" type="String" size="9"/>
+        <field name="DBKEYS2_05_PickHeader" type="String" size="13"/>
+        <field name="DBKEYS2_05_Flags" type="String" size="8"/>
+        <field name="DBKEYS2_06_Position" type="String" size="5"/>
+        <field name="DBKEYS2_06_Length" type="String" size="4"/>
+        <field name="DBKEYS2_06_DataElementName" type="String" size="33"/>
+        <field name="DBKEYS2_06_DataElementType" type="String" size="9"/>
+        <field name="DBKEYS2_06_PickHeader" type="String" size="13"/>
+        <field name="DBKEYS2_06_Flags" type="String" size="8"/>
+        <field name="DBKEYS2_07_Position" type="String" size="5"/>
+        <field name="DBKEYS2_07_Length" type="String" size="4"/>
+        <field name="DBKEYS2_07_DataElementName" type="String" size="33"/>
+        <field name="DBKEYS2_07_DataElementType" type="String" size="9"/>
+        <field name="DBKEYS2_07_PickHeader" type="String" size="13"/>
+        <field name="DBKEYS2_07_Flags" type="String" size="8"/>
+        <field name="DBKEYS2_08_Position" type="String" size="5"/>
+        <field name="DBKEYS2_08_Length" type="String" size="4"/>
+        <field name="DBKEYS2_08_DataElementName" type="String" size="33"/>
+        <field name="DBKEYS2_08_DataElementType" type="String" size="9"/>
+        <field name="DBKEYS2_08_PickHeader" type="String" size="13"/>
+        <field name="DBKEYS2_08_Flags" type="String" size="8"/>
+        <field name="DBKEYS2_09_Position" type="String" size="5"/>
+        <field name="DBKEYS2_09_Length" type="String" size="4"/>
+        <field name="DBKEYS2_09_DataElementName" type="String" size="33"/>
+        <field name="DBKEYS2_09_DataElementType" type="String" size="9"/>
+        <field name="DBKEYS2_09_PickHeader" type="String" size="13"/>
+        <field name="DBKEYS2_09_Flags" type="String" size="8"/>
+        <field name="DBKEYS2_10_Position" type="String" size="5"/>
+        <field name="DBKEYS2_10_Length" type="String" size="4"/>
+        <field name="DBKEYS2_10_DataElementName" type="String" size="33"/>
+        <field name="DBKEYS2_10_DataElementType" type="String" size="9"/>
+        <field name="DBKEYS2_10_PickHeader" type="String" size="13"/>
+        <field name="DBKEYS2_10_Flags" type="String" size="8"/>
+        <field name="DBKEYS2_11_Position" type="String" size="5"/>
+        <field name="DBKEYS2_11_Length" type="String" size="4"/>
+        <field name="DBKEYS2_11_DataElementName" type="String" size="33"/>
+        <field name="DBKEYS2_11_DataElementType" type="String" size="9"/>
+        <field name="DBKEYS2_11_PickHeader" type="String" size="13"/>
+        <field name="DBKEYS2_11_Flags" type="String" size="8"/>
+        <field name="DBKEYS2_12_Position" type="String" size="5"/>
+        <field name="DBKEYS2_12_Length" type="String" size="4"/>
+        <field name="DBKEYS2_12_DataElementName" type="String" size="33"/>
+        <field name="DBKEYS2_12_DataElementType" type="String" size="9"/>
+        <field name="DBKEYS2_12_PickHeader" type="String" size="13"/>
+        <field name="DBKEYS2_12_Flags" type="String" size="8"/>
+        <field name="DBKEYS2_13_Position" type="String" size="5"/>
+        <field name="DBKEYS2_13_Length" type="String" size="4"/>
+        <field name="DBKEYS2_13_DataElementName" type="String" size="33"/>
+        <field name="DBKEYS2_13_DataElementType" type="String" size="9"/>
+        <field name="DBKEYS2_13_PickHeader" type="String" size="13"/>
+        <field name="DBKEYS2_13_Flags" type="String" size="8"/>
+      </fields>                      
+      <indices>
+        <index id="1">
+          <fields>
+            <field name="RecordStatus"/>
+            <field name="CompanyCode"/>
+            <field name="DatabaseName"/>
+            <field name="Identifier"/>
+            <field name="KeyNumber"/>
+            <field name="HistoryTag"/>
+          </fields>
+        </index>
+      </indices>
+    </table>
+
+    <table name="OPERATOR">
+      <fields>
+        <field name="HistoryTag" type="Byte" size="1"/>
+        <field name="AbsoluteId" type="Binary" size="7"/>
+        <field name="RecordStatus" type="String" size="2"/>
+        <field name="LastDateModified" type="String" size="8"/>
+        <field name="LastTimeModified" type="String" size="5"/>
+        <field name="LastUserToModify" type="String" size="5"/>
+        <field name="CompanyCode" type="String" size="4"/>
+        <field name="Identifier" type="String" size="17"/>
+        <field name="RecordUpdateUserName" type="String" size="5"/>
+        <field name="Name" type="String" size="33"/>
+        <field name="EmployeeNumber" type="String" size="11"/>
+        <field name="Department" type="String" size="3"/>
+        <field name="EncryptedPassword" type="Binary" size="129"/>
+        <field name="UserNameAtEncryption" type="String" size="17"/>
+        <field name="SecurityLevel" type="String" size="2"/>
+        <field name="DPMAILAtLogin" type="String" size="2"/>
+        <field name="DPMAILRefresh" type="String" size="2"/>
+        <field name="DPMAILGroup" type="String" size="4"/>
+        <field name="WorkStations01" type="String" size="3"/>
+        <field name="WorkStations02" type="String" size="3"/>
+        <field name="WorkStations03" type="String" size="3"/>
+        <field name="WorkStations04" type="String" size="3"/>
+        <field name="WorkStations05" type="String" size="3"/>
+        <field name="WorkStations06" type="String" size="3"/>
+        <field name="WorkStations07" type="String" size="3"/>
+        <field name="WorkStations08" type="String" size="3"/>
+        <field name="WorkStations09" type="String" size="3"/>
+        <field name="WorkStations10" type="String" size="3"/>
+        <field name="WorkStations11" type="String" size="3"/>
+        <field name="WorkStations12" type="String" size="3"/>
+        <field name="WorkStations13" type="String" size="3"/>
+        <field name="WorkStations14" type="String" size="3"/>
+        <field name="WorkStations15" type="String" size="3"/>
+        <field name="WorkStations16" type="String" size="3"/>
+        <field name="WorkStations17" type="String" size="3"/>
+        <field name="WorkStations18" type="String" size="3"/>
+        <field name="WorkStations19" type="String" size="3"/>
+        <field name="WorkStations20" type="String" size="3"/>
+        <field name="WorkStations21" type="String" size="3"/>
+        <field name="WorkStations22" type="String" size="3"/>
+        <field name="WorkStations23" type="String" size="3"/>
+        <field name="WorkStations24" type="String" size="3"/>
+        <field name="WorkStations25" type="String" size="3"/>
+        <field name="WorkStations26" type="String" size="3"/>
+        <field name="WorkStations27" type="String" size="3"/>
+        <field name="WorkStations28" type="String" size="3"/>
+        <field name="WorkStations29" type="String" size="3"/>
+        <field name="WorkStations30" type="String" size="3"/>
+        <field name="WorkStations31" type="String" size="3"/>
+        <field name="WorkStations32" type="String" size="3"/>
+        <field name="WorkStations33" type="String" size="3"/>
+        <field name="WorkStations34" type="String" size="3"/>
+        <field name="WorkStations35" type="String" size="3"/>
+        <field name="WorkStations36" type="String" size="3"/>
+        <field name="WorkStations37" type="String" size="3"/>
+        <field name="WorkStations38" type="String" size="3"/>
+        <field name="WorkStations39" type="String" size="3"/>
+        <field name="WorkStations40" type="String" size="3"/>
+        <field name="PrevEncPwd01EncryptedPassword" type="Binary" size="129"/>
+        <field name="PrevEncPwd01UserNameAtEncryption" type="String" size="17"/>
+        <field name="PrevEncPwd02EncryptedPassword" type="Binary" size="129"/>
+        <field name="PrevEncPwd02UserNameAtEncryption" type="String" size="17"/>
+        <field name="PrevEncPwd03EncryptedPassword" type="Binary" size="129"/>
+        <field name="PrevEncPwd03UserNameAtEncryption" type="String" size="17"/>
+        <field name="PrevEncPwd04EncryptedPassword" type="Binary" size="129"/>
+        <field name="PrevEncPwd04UserNameAtEncryption" type="String" size="17"/>
+        <field name="PrevEncPwd05EncryptedPassword" type="Binary" size="129"/>
+        <field name="PrevEncPwd05UserNameAtEncryption" type="String" size="17"/>
+        <field name="UserMustChangePassword" type="Boolean" size="1"/>
+        <field name="LastPasswordChangeDate" type="String" size="8"/>
+        <field name="AccountLockedOut" type="Boolean" size="1"/>
+        <field name="LockoutDateTime" type="DateTime" size="8"/>
+        <field name="LastBadLoginAttemptDateTime" type="DateTime" size="8"/>
+        <field name="BadLoginAttempts" type="ShortInt" size="1"/>
+        <field name="PasswordNeverExpires" type="Boolean" size="1"/>
+        <field name="FTRightsId" type="LongWord" size="4"/>
+        <field name="MxRightsId" type="LongWord" size="4"/>
+        <field name="Reserved" type="String" size="791"/>
+      </fields>
+      <indices>
+        <index id="1">
+          <fields>
+            <field name="RecordStatus"/>
+            <field name="CompanyCode"/>
+            <field name="Identifier"/>
+            <field name="HistoryTag"/>
+          </fields>
+        </index>
+        <index id="2">
+          <fields>
+            <field name="RecordStatus"/>
+            <field name="CompanyCode"/>
+            <field name="RecordUpdateUserName"/>
             <field name="HistoryTag"/>
           </fields>
         </index>
