@@ -18,87 +18,89 @@ type
     Table: TTable;
   end;
 
+  TKey = array[0..(MAX_KEY_SIZE - 1) * 2] of Char;
+
   TBTRCALL = class;
 
   TOperation = class (TObject)
   private
     FBTRCALL: TBTRCALL;
     FConvertKey: Boolean;
-    procedure UpdateKey(Table: TTable; KeyField: Field; var KeyBuffer);
   protected
+    procedure UpdateKey(Table: TTable; KeyField: Field; var KeyBuffer: TKey);
     procedure GatherData(Table: TTable; Fields: Fields; var DataBuffer);
     property BTRCALL: TBTRCALL read FBTRCALL;
   public
     constructor Create(ABTRCALL: TBTRCALL);
-    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; virtual; abstract;
+    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; virtual; abstract;
     property ConvertKey: Boolean read FConvertKey;
   end;
 
   TOpenOperation = class (TOperation)
   private
-    function ExtractTable(var KeyBuffer): TTable;
+    function ExtractTable(var KeyBuffer: TKey): TTable;
     function CreateQuery(Table: TTable; KeyNumber: Integer): String;
   public
     constructor Create(ABTRCALL: TBTRCALL);
-    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
+    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
   end;
 
   TCloseOperation = class (TOperation)
   public
-    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
+    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
   end;
 
   TGetFirstOperation = class (TOperation)
   public
-    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
+    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
   end;
 
   TGetNextOperation = class (TOperation)
   public
-    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
+    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
   end;
 
   TGetPreviousOperation = class (TOperation)
   public
-    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
+    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
   end;
 
   TGetLastOperation = class (TOperation)
   public
-    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
+    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
   end;
 
   TGetEqualOperation = class (TOperation)
   public
-    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
+    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
   end;
 
   TGetGreaterOperation = class (TOperation)
   public
-    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
+    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
   end;
 
   TGetGreaterEqualOperation = class (TOperation)
   public
-    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
+    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
   end;
 
   TGetLessOperation = class (TOperation)
   public
-    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
+    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
   end;
 
   TGetLessEqualOperation = class (TOperation)
   public
-    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
+    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt; override;
   end;
 
   TBTRCALL = class (TObject)
   private
     FOperations: array[0..MAX_OPERATION] of TOperation;
     FDataDefinition: TDatabaseDefinition;
-    function KeyBufferToSQL(KeyBuffer: PChar): String;
-    function KeyBufferFromSQL(KeyBuffer: String): String;
+    function KeyBufferToSQL(KeyBuffer: PChar; KeyLength: Integer): TKey;
+    function KeyBufferFromSQL(KeyBuffer: TKey; KeyLength: Integer): TKey;
   protected
     class procedure Initialize;
     class procedure Finalize;
@@ -110,7 +112,7 @@ type
     property DataDefinition: TDatabaseDefinition read FDataDefinition;
   end;
 
-function BTRV(Operation: Word; var PosBlock; var DataBuffer; var DataLen: Word; var KeyBuffer; KeyNumber: SmallInt): SmallInt;
+function BTRV(Operation: Word; var PosBlock; var DataBuffer; var DataLength: Word; var KeyBuffer: ShortString; KeyNumber: SmallInt): SmallInt;
 
 implementation
 
@@ -118,12 +120,12 @@ implementation
 
 { Protected declarations }
 
-procedure TOperation.UpdateKey(Table: TTable; KeyField: Field; var KeyBuffer);
+procedure TOperation.UpdateKey(Table: TTable; KeyField: Field; var KeyBuffer: TKey);
 var
   Key: String;
 begin
   Key := KeyField.Value;
-  Move(Key[1], (PChar(@KeyBuffer)+1)^, Length(Key));
+  Move(Key[1], KeyBuffer, Length(Key));
 end;
 
 procedure TOperation.GatherData(Table: TTable; Fields: Fields; var DataBuffer);
@@ -144,11 +146,11 @@ end;
 
 { Private declarations }
 
-function TOpenOperation.ExtractTable(var KeyBuffer): TTable;
+function TOpenOperation.ExtractTable(var KeyBuffer: TKey): TTable;
 var
   FileName, FileExtension, TableName: String;
 begin
-  FileName := ExtractFileName(PChar(KeyBuffer));
+  FileName := ExtractFileName(PChar(@KeyBuffer));
   FileExtension := ExtractFileExt(FileName);
   TableName := Copy(FileName, 1, Length(FileName) - Length(FileExtension));
   Result := BTRCALL.DataDefinition.Tables.TableByName[TableName];
@@ -178,7 +180,7 @@ begin
   FConvertKey := False;
 end;
 
-function TOpenOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
+function TOpenOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
 begin
   try
     OleInitialize(nil);
@@ -214,7 +216,7 @@ end;
 
 { Public declarations }
 
-function TCloseOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
+function TCloseOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
 begin
   if TObject(PosBlock) <> nil then
   begin
@@ -230,7 +232,7 @@ end;
 
 { Public declarations }
 
-function TGetFirstOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
+function TGetFirstOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
 begin
   with TPosBlock(PosBlock) do
   begin
@@ -250,7 +252,7 @@ end;
 
 { Public declarations }
 
-function TGetNextOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
+function TGetNextOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
 begin
   with TPosBlock(PosBlock) do
   begin
@@ -270,7 +272,7 @@ end;
 
 { Public declarations }
 
-function TGetPreviousOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
+function TGetPreviousOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
 begin
   with TPosBlock(PosBlock) do
   begin
@@ -290,7 +292,7 @@ end;
 
 { Public declarations }
 
-function TGetLastOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
+function TGetLastOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
 begin
   with TPosBlock(PosBlock) do
   begin
@@ -310,11 +312,11 @@ end;
 
 { Public declarations }
 
-function TGetEqualOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
+function TGetEqualOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
 begin
   with TPosBlock(PosBlock) do
   begin
-    Dataset.Find(Format('%s = ''%s''', [Table.Indices[KeyNumber - 1].Name, PChar(KeyBuffer)]), 0, adSearchForward, 0);
+    Dataset.Find(Format('%s = ''%s''', [Table.Indices[KeyNumber - 1].Name, PChar(@KeyBuffer)]), 0, adSearchForward, 0);
     if Dataset.EOF then
       Result := B_KEY_VALUE_NOT_FOUND
     else
@@ -330,11 +332,11 @@ end;
 
 { Public declarations }
 
-function TGetGreaterOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
+function TGetGreaterOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
 begin
   with TPosBlock(PosBlock) do
   begin
-    Dataset.Find(Format('%s > ''%s''', [Table.Indices[KeyNumber - 1].Name, PChar(KeyBuffer)]), 0, adSearchForward, 0);
+    Dataset.Find(Format('%s > ''%s''', [Table.Indices[KeyNumber - 1].Name, PChar(@KeyBuffer)]), 0, adSearchForward, 0);
     if Dataset.EOF then
       Result := B_KEY_VALUE_NOT_FOUND
     else
@@ -350,11 +352,14 @@ end;
 
 { Public declaratinos }
 
-function TGetGreaterEqualOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
+function TGetGreaterEqualOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
+var
+  Tmp: String;
 begin
   with TPosBlock(PosBlock) do
   begin
-    Dataset.Find(Format('%s >= ''%s''', [Table.Indices[KeyNumber - 1].Name, PChar(KeyBuffer)]), 0, adSearchForward, 0);
+    Tmp := Format('%s >= ''%s''', [Table.Indices[KeyNumber - 1].Name, KeyBuffer]);
+    Dataset.Find(Tmp, 0, adSearchForward, 0);
     if Dataset.EOF then
       Result := B_KEY_VALUE_NOT_FOUND
     else
@@ -370,11 +375,11 @@ end;
 
 { Public declarations }
 
-function TGetLessOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
+function TGetLessOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
 begin
   with TPosBlock(PosBlock) do
   begin
-    Dataset.Find(Format('%s >= ''%s''', [Table.Indices[KeyNumber - 1].Name, PChar(KeyBuffer)]), 0, adSearchForward, 0);
+    Dataset.Find(Format('%s >= ''%s''', [Table.Indices[KeyNumber - 1].Name, PChar(@KeyBuffer)]), 0, adSearchForward, 0);
     if (Dataset.EOF or Dataset.BOF) then
       Result := B_KEY_VALUE_NOT_FOUND
     else
@@ -391,11 +396,11 @@ end;
 
 { Public declarations }
 
-function TGetLessEqualOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
+function TGetLessEqualOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
 begin
   with TPosBlock(PosBlock) do
   begin
-    Dataset.Find(Format('%s > ''%s''', [Table.Indices[KeyNumber - 1].Name, PChar(KeyBuffer)]), 0, adSearchForward, 0);
+    Dataset.Find(Format('%s > ''%s''', [Table.Indices[KeyNumber - 1].Name, PChar(@KeyBuffer)]), 0, adSearchForward, 0);
     if (Dataset.EOF or Dataset.BOF) then
       Result := B_KEY_VALUE_NOT_FOUND
     else
@@ -412,24 +417,34 @@ end;
 
 { Private declarations }
 
-function TBTRCALL.KeyBufferToSQL(KeyBuffer: PChar): String;
+function TBTRCALL.KeyBufferToSQL(KeyBuffer: PChar; KeyLength: Integer): TKey;
+const
+  HEX_NUMBERS = '0123456789ABCDEF';
 var
   I: Integer;
-  Key: String;
 begin
-  Key := KeyBuffer;
-  Result := '';
-  for I := 1 to Length(Key) do
-    Result := Result + IntToHex(Byte(Key[I]), 2);
+  FillChar(Result, SizeOf(Result), 0);
+  for I := 0 to KeyLength - 1 do
+  begin
+    Result[I * 2] := HEX_NUMBERS[(PByte(KeyBuffer+I)^ and 240 + 1) shr 4 + 1];
+    Result[I * 2 + 1] := HEX_NUMBERS[PByte(KeyBuffer+I)^ and 15 + 1];
+  end;
 end;
 
-function TBTRCALL.KeyBufferFromSQL(KeyBuffer: String): String;
+function TBTRCALL.KeyBufferFromSQL(KeyBuffer: TKey; KeyLength: Integer): TKey;
+const
+  HEX_VALUES: array['0'..'F'] of Byte = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0, 0, 0, 0, $A, $B, $C, $D, $E, $F);
 var
   I: Integer;
+  L, H: Byte;
 begin
-  Result := '';
-  for I := 0 to (Length(KeyBuffer) div 2) - 1 do
-    Result := Result + Chr(StrToInt('$' + Copy(KeyBuffer, I * 2 + 1, 2)));
+  FillChar(Result, SizeOf(Result), 0);
+  for I := 0 to KeyLength - 1 do
+  begin
+    H := HEX_VALUES[KeyBuffer[I * 2]] * 16;
+    L := HEX_VALUES[KeyBuffer[I * 2 + 1]];
+    Result[I] := Char(L + H);
+  end;
 end;
 
 { Protected declarations }
@@ -487,19 +502,23 @@ end;
 
 function TBTRCALL.Execute(Operation: Word; var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer; KeyLength: Byte; KeyNumber: ShortInt): SmallInt;
 var
-  Key: String;
+  Key: TKey;
 begin
   if Assigned(FOperations[Operation]) then
   begin
     if FOperations[Operation].ConvertKey then
-      Key := KeyBufferToSQL(PChar(@KeyBuffer)+1)
+    begin
+      Key := KeyBufferToSQL(@KeyBuffer, KeyLength);
+      KeyLength := KeyLength * 2;
+    end
     else
-      Key := PChar(@KeyBuffer)+1;
+      Move(KeyBuffer, Key, KeyLength);
     Result := FOperations[Operation].Execute(PosBlock, DataBuffer, DataLen, Key, KeyLength, KeyNumber);
     if FOperations[Operation].ConvertKey then
     begin
-      Key := KeyBufferFromSQL(Key);
-      Move(Key[1], KeyBuffer, Length(Key));
+      KeyLength := KeyLength div 2;
+      Key := KeyBufferFromSQL(Key, KeyLength);
+      Move(Key, KeyBuffer, KeyLength);
     end;
   end
   else
@@ -508,15 +527,23 @@ end;
 
 { *** }
 
-function BTRV(Operation: Word; var PosBlock; var DataBuffer; var DataLen: Word; var KeyBuffer; KeyNumber: SmallInt): SmallInt;
+function BTRV(Operation: Word; var PosBlock; var DataBuffer; var DataLength: Word; var KeyBuffer: ShortString; KeyNumber: SmallInt): SmallInt;
 var
-  KeyLen: BYTE;
+  Key: TKey;
+  KeyLength: Byte;
   DataLenParam: LongInt;
 begin
-  KeyLen:= 255; // maximum key length
-  DataLenParam := dataLen;
-  Result := TBTRCALL.Instance.Execute(Operation, PosBlock, DataBuffer, DataLenParam, KeyBuffer, KeyLen, KeyNumber);
-  DataLen := DataLen;
+  KeyLength := Length(KeyBuffer); // maximum key length
+  FillChar(Key, SizeOf(Key), 255);
+  Move(KeyBuffer[1], Key, Length(KeyBuffer));
+  DataLenParam := DataLength;
+  Result := TBTRCALL.Instance.Execute(Operation, PosBlock, DataBuffer, DataLenParam, Key, KeyLength, KeyNumber);
+  KeyLength := 0;
+  while Key[KeyLength] <> #255 do
+    Inc(KeyLength);
+  Move(Key, KeyBuffer[1], KeyLength);
+  KeyBuffer[0] := Char(KeyLength);
+  DataLength := DataLenParam;
 end;
 
 initialization
