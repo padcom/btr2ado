@@ -4,7 +4,7 @@ interface
 
 uses
   ActiveX, ComObj, Classes, SysUtils,
-  PxADODb, BtrConst,
+  PxADODb, PxSettings, BtrConst,
   DatabaseDefinitions;
 
 const
@@ -190,7 +190,7 @@ begin
       Table := ExtractTable(KeyBuffer);
       DBConnection := CreateComObject(CLASS_Connection) as Connection;
       try
-        DBConnection.Open('Provider=PostgreSQL.1;User ID=postgres;Password=qwe123;Location=test', 'postgres', 'qwe123', 0);
+        DBConnection.Open(IniFile.ReadString('settings', 'connection-string', ''), '', '', 0);
 //        DBConnection.Open('DSN=TEST;UID=postgres;PWD=qwe123;Database=test', 'postgres', 'qwe123', 0);
       except
         Result := B_FILE_NOT_FOUND;
@@ -454,10 +454,11 @@ var
 
 class procedure TBTRCALL.Initialize;
 begin
+  SetIniFileName('btr2ado.ini');
   Assert(not Assigned(_Instance), 'Error: TBTRCALL instance already initialized');
   _Instance := TBTRCALL.Create;
   _Instance.FDataDefinition := TDatabaseDefinition.Create;
-  _Instance.DataDefinition.LoadXml('..\data-importer\data\description.xml');
+  _Instance.DataDefinition.LoadXml(IniFile.ReadString('settings', 'database-definition', ''));
 end;
 
 class procedure TBTRCALL.Finalize;

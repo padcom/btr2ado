@@ -3,7 +3,7 @@ program test_keys;
 {$APPTYPE CONSOLE}
 
 uses
-  ActiveX, ComObj, Classes, SysUtils, Variants, PxADODb,
+  ActiveX, ComObj, Classes, SysUtils, Variants, PxADODb, PxSettings,
   BtrClass, BtrConst,
   DatabaseDefinitions in '..\common\DatabaseDefinitions.pas',
   Operations in '..\common\Operations.pas';
@@ -49,6 +49,8 @@ var
   Status: Integer;
 
 begin
+  SetIniFileName('btr2ado.ini');
+  
   Key := ExpandFileName('..\data-importer\data\CODE.DAT') + #0;
   DataLen := SizeOf(Data);
   Status := BTRV(B_OPEN, PosBlock, Data, DataLen, Key, 1);
