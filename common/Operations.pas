@@ -4,7 +4,7 @@ interface
 
 uses
   ActiveX, ComObj, Classes, SysUtils,
-  PxADODb, PxSettings, BtrConst,
+  PxADODb, PxSettings, BtrApi32, BtrConst,
   DatabaseDefinitions;
 
 const
@@ -94,6 +94,11 @@ type
   end;
 
   TGetLessEqualOperation = class (TOperation)
+  public
+    function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Integer; KeyNumber: ShortInt): SmallInt; override;
+  end;
+
+  TBStatOperation = class (TOperation)
   public
     function Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Integer; KeyNumber: ShortInt): SmallInt; override;
   end;
@@ -441,6 +446,53 @@ begin
   end;
 end;
 
+{ TBStatOperation }
+
+{ Public declarations }
+
+type
+  //
+  // Record type definitions for Stat and Create operations
+  //
+  FILE_SPECS_T = packed record
+    RecLength   : SmallInt;
+    PageSize    : SmallInt;
+    IndexCount  : SmallInt;
+    RecCount    : LongWord;
+    Flags       : SmallInt;
+    DupPointers : Byte;
+    NotUsed     : Byte;
+    Allocations : SmallInt;
+  end;
+
+  KEY_SPECS_T = packed record
+    Position    : SmallInt;
+    Length      : SmallInt;
+    Flags       : SmallInt;
+    Reserved    : array[0..3] of Char;
+    KeyType     : Char;
+    NullChar    : Char;
+    NotUsed     : array[0..1] of Char;
+    ManualKeyNumber: Byte;
+    AcsNumber   : Byte;
+  end;
+
+  FILE_CREATE_BUFFER_T = packed record
+    FileSpecs   : FILE_SPECS_T;
+    KeySpecs    : array[0..4] of KEY_SPECS_T;
+  end;
+
+function TBStatOperation.Execute(var PosBlock; var DataBuffer; var DataLen: Integer; var KeyBuffer: TKey; KeyLength: Integer; KeyNumber: ShortInt): SmallInt;
+//var
+//  RecCountResult: Recordset;
+begin
+  with TPosBlock(PosBlock) do
+  begin
+    FILE_CREATE_BUFFER_T(DataBuffer).FileSpecs.RecCount := Dataset.RecordCount;
+    Result := B_NO_ERROR;
+  end;
+end;
+
 { TBTRCALL }
 
 { Private declarations }
@@ -519,6 +571,7 @@ begin
   FOperations[B_GET_GE] := TGetGreaterEqualOperation.Create(Self);
   FOperations[B_GET_LT] := TGetLessOperation.Create(Self);
   FOperations[B_GET_LE] := TGetLessEqualOperation.Create(Self);
+  FOperations[B_STAT] := TBStatOperation.Create(Self);
 end;
 
 destructor TBTRCALL.Destroy;
@@ -534,6 +587,9 @@ function TBTRCALL.Execute(Operation: Word; var PosBlock; var DataBuffer; var Dat
 var
   Key: TKey;
 begin
+  if Operation in [50..64] then
+    Operation := Operation - 50;
+    
   if Assigned(FOperations[Operation]) then
   begin
     if FOperations[Operation].ConvertKey then

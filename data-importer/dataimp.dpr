@@ -24,6 +24,15 @@ begin
   Result := Result + ')';
 end;
 
+function CreateTableIndex(Index: TIndex): String;
+begin
+  Result := Format('CREATE INDEX %s ON %s USING btree (%s)', [
+    Index.Name,
+    Index.Table.Name,
+    Index.Name
+  ]);
+end;
+
 var
   DescrFile: TDatabaseDefinition;
   Table: TTable;
@@ -31,6 +40,7 @@ var
   Cmd, RO: OleVariant;
   Buffer: Pointer;
   BFile: TBtrvFile;
+  I: Integer;
 
 begin
   OleInitialize(nil);
@@ -55,6 +65,9 @@ begin
         // silently skip an exception because it's an information that the table does not exist
       end;
       C.Execute(CreateTableQuery(Table), RO, 0);
+
+      for I := 0 to Table.Indices.Count - 1 do
+        C.Execute(CreateTableIndex(Table.Indices[I]), RO, 0);
 
       BFile.StepFirst;
       while BFile.GetLastStatus = B_NO_ERROR do

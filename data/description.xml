@@ -266,5 +266,20 @@
         </index>
       </indices>
     </table>
+
+    <table name="NOTES">
+      <fields>
+        <field name="Reference" type="Binary" size="25"/>
+        <field name="Note" type="String" size="80"/>
+      </fields>
+      <indices>
+        <index id="1">
+          <fields>
+            <field name="Reference"/>
+          </fields>
+        </index>
+      </indices>
+    </table>
+
   </tables>
 </definitions>
